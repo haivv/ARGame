@@ -1,36 +1,50 @@
 <?php
-$conn = mysqli_connect("localhost", "root", "", "gamear");
+$conn = mysqli_connect("localhost", "root", "", "argame");
 mysqli_set_charset($conn,"utf8");
 
-if(!isset($_GET["username"]) and !isset($_GET["password"]) ){
-    $result = mysqli_query($conn, "SELECT * FROM  account");
-}
-else{
-    $username = $_GET["username"];
-$password = $_GET["password"];
-    $result = mysqli_query($conn, "SELECT * FROM  account WHERE username='$username' and password='$password'");
-}
-// Connect to MySQL database
+$result = mysqli_query($conn, "SELECT * FROM account ORDER BY score DESC");
 
-
-
-mysqli_set_charset($conn, 'utf8');
-
-// Create empty array for JSON data
+// Create an empty array for JSON data
 $json_data = array();
 
-// Loop through result set and convert to associative array
+// Initialize variables for ranking
+$prevRank = 1; // Initialize previous rank
+$prevScore = null;
+$plus =null;
+$stt = 1;
+// Loop through the result set, convert to an associative array, and add ranking
 while ($row = mysqli_fetch_assoc($result)) {
-    $json_data[] = $row;
+    // Create a new associative array for each row
+   
+
+    // Check if the current student's score is different from the previous student's score
+    if ($row['score'] == $prevScore) {
+        // If they have the same score, update the rank to the previous rank
+         $rank = $prevRank;
+  
+    } else {
+        // If they have different scores, increment the rank by 1
+        $rank=$stt;
+    }
+    $student = array(
+        'rank' => $rank,
+        'name' => $row['name'],
+        'score' => $row['score']
+    );
+
+    // Add the student data to the JSON array
+    $json_data[] = $student;
+
+    // Update the previous rank and previous score
+    $prevRank = $rank;
+    $prevScore = $row['score'];
+    $stt++;
 }
 
-// Convert PHP array to JSON
+// Convert the PHP array to JSON
 $json_output = json_encode($json_data);
 
+// Output the JSON data
 echo $json_output;
-
-// Close MySQL connection
-mysqli_close($conn);
-
 ?>
 
